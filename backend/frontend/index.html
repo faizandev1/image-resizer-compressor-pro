@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Image Resizer & Compressor</title>
+  <style>
+    :root{
+      --bg:#f6fbf7;
+      --card:#ffffff;
+      --muted:#5f6f64;
+      --text:#122017;
+      --line:rgba(18,32,23,.12);
+      --danger:#e4465a;
+      --shadow: 0 12px 30px rgba(18,32,23,.10);
+      --radius: 16px;
+
+      --green:#23b536;
+      --green2:#9cf3bf;
+      --greenSoft: rgba(35,181,54,.12);
+      --greenSoft2: rgba(35,181,54,.06);
+      --focus: rgba(35,181,54,.18);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background:
+        radial-gradient(1200px 700px at 18% -10%, rgba(35,181,54,.14), transparent 60%),
+        radial-gradient(900px 600px at 85% 0%, rgba(156,243,191,.25), transparent 55%),
+        linear-gradient(180deg, #ffffff, var(--bg) 40%, #ffffff);
+      color:var(--text);
+      min-height:100vh;
+    }
+
+    header{
+      padding:26px 18px 14px;
+      max-width:1160px;
+      margin:0 auto;
+      display:flex;
+      gap:14px;
+      align-items:flex-end;
+      justify-content:space-between;
+    }
+
+    .brand h1{margin:0;font-size:20px;letter-spacing:.2px}
+    .brand p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.45;max-width:680px}
+
+    .pill{
+      border:1px solid var(--line);
+      color:var(--muted);
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 10px 22px rgba(18,32,23,.06);
+    }
+    .pill b{color:var(--text); font-weight:750}
+
+    main{
+      max-width:1160px;
+      margin:0 auto;
+      padding: 0 18px 26px;
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:16px;
+    }
+    @media (max-width: 980px){ main{grid-template-columns:1fr} }
+
+    .card{
+      background: var(--card);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 14px 12px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      background: linear-gradient(180deg, rgba(35,181,54,.06), transparent);
+    }
+    .card .hd h2{margin:0;font-size:13px;color:#1b2c21;letter-spacing:.2px}
+    .card .bd{padding:14px}
+
+    .group{display:flex; flex-direction:column; gap:8px; margin-bottom:12px}
+    label{font-size:12px;color: var(--muted)}
+
+    .row{display:flex; gap:10px}
+    .row > *{flex:1}
+
+    input[type="number"], select{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(18,32,23,.14);
+      background:#ffffff;
+      color: var(--text);
+      padding:10px 10px;
+      outline:none;
+      font-size:13px;
+      box-shadow: 0 8px 18px rgba(18,32,23,.04);
+    }
+    input:focus, select:focus{
+      border-color: rgba(35,181,54,.55);
+      box-shadow: 0 0 0 4px var(--focus);
+    }
+
+    .toggle{
+      display:flex; gap:10px; align-items:center; user-select:none;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(18,32,23,.14);
+      background: linear-gradient(180deg, var(--greenSoft2), #ffffff);
+      box-shadow: 0 8px 18px rgba(18,32,23,.04);
+    }
+    .toggle input{transform: scale(1.1); accent-color: var(--green);}
+
+    .small{font-size:12px;color:var(--muted);line-height:1.4}
+
+    .slider{
+      display:flex; gap:12px; align-items:center;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(18,32,23,.14);
+      background:#ffffff;
+      box-shadow: 0 8px 18px rgba(18,32,23,.04);
+    }
+    input[type="range"]{width:100%; accent-color: var(--green);}
+
+    .btns{display:flex; gap:10px; flex-wrap:wrap}
+
+    button{
+      border:0; cursor:pointer; border-radius:12px;
+      padding:11px 13px; font-weight:780; font-size:13px;
+      color: #06210f;
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      box-shadow: 0 16px 26px rgba(35,181,54,.18);
+      transition: transform .06s ease, box-shadow .12s ease, filter .12s ease;
+    }
+    button:hover{filter: saturate(1.05);}
+    button:active{transform: translateY(1px);}
+
+    button.secondary{
+      background: rgba(35,181,54,.10);
+      color: #0b2a15;
+      border:1px solid rgba(35,181,54,.25);
+      box-shadow:none;
+    }
+    button.danger{
+      background: rgba(228,70,90,.10);
+      color: #6c0f1b;
+      border:1px solid rgba(228,70,90,.24);
+      box-shadow:none;
+    }
+    button:disabled{opacity:.5; cursor:not-allowed}
+
+    /* Dropzone: NOT transparent */
+    .drop{
+      border: 2px dashed rgba(35,181,54,.45);
+      border-radius: var(--radius);
+      padding: 16px;
+      background: #ffffff;
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      transition: .15s ease;
+      box-shadow: 0 12px 22px rgba(18,32,23,.06);
+    }
+    .drop.drag{
+      border-color: rgba(35,181,54,.90);
+      background: rgba(35,181,54,.08);
+    }
+    .drop .left{ display:flex; flex-direction:column; gap:6px; }
+    .drop .left b{font-size:14px; color:#0d2416}
+    .drop .left span{font-size:12px;color:var(--muted)}
+    .drop input{display:none}
+
+    .filelist{ display:flex; flex-direction:column; gap:12px; }
+
+    .item{
+      border:1px solid rgba(18,32,23,.12);
+      border-radius:14px;
+      overflow:hidden;
+      background: #ffffff;
+      display:grid;
+      grid-template-columns: 92px 1fr;
+      min-height:92px;
+      box-shadow: 0 12px 22px rgba(18,32,23,.06);
+    }
+    .thumb{
+      background: linear-gradient(180deg, rgba(35,181,54,.06), rgba(255,255,255,1));
+      display:flex; align-items:center; justify-content:center;
+      border-right:1px solid rgba(18,32,23,.10);
+    }
+    .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    .meta{ padding:12px 12px; display:flex; flex-direction:column; gap:6px; }
+    .meta .top{ display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+
+    .name{ font-size:13px; font-weight:780; color:#0f2416; word-break: break-all; }
+
+    .tag{
+      font-size:11px; color:#0b2a15; padding:6px 10px;
+      border-radius:999px; border:1px solid rgba(35,181,54,.25);
+      background: rgba(35,181,54,.10); white-space:nowrap;
+    }
+    .stats{ display:flex; flex-wrap:wrap; gap:10px; color:var(--muted); font-size:12px; }
+    .stats b{color:#14311f}
+    .item .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:2px; }
+    .item .actions button{ padding:9px 10px; border-radius:11px; font-size:12px; }
+
+    .hint{
+      margin-top:10px; padding:12px 14px; border-radius:14px;
+      border:1px solid rgba(18,32,23,.12);
+      background: rgba(35,181,54,.06);
+      color: var(--muted); font-size:12px; line-height:1.5;
+    }
+
+    .toast{
+      position: fixed; bottom: 16px; right: 16px; max-width: 420px;
+      padding: 12px 14px; border-radius: 14px;
+      border: 1px solid rgba(18,32,23,.14);
+      background: rgba(255,255,255,.96); color: #0d2416;
+      box-shadow: var(--shadow); display:none; z-index: 9999;
+    }
+    .toast.show{display:block}
+    .toast small{display:block; color:var(--muted); margin-top:4px}
+
+    footer{
+      max-width:1160px;
+      margin:0 auto;
+      padding: 0 18px 26px;
+      color: var(--muted);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .powered{font-weight:800;color:#0d2416}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>Image Resizer & Compressor</h1>
+     </div>
+    <div class="pill" title="Backend status">
+      <span>Backend:</span>
+      <b id="health">checking…</b>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="hd">
+        <h2>Settings</h2>
+        <button class="secondary" id="btnClear" type="button">Clear</button>
+      </div>
+      <div class="bd">
+        <div class="group">
+          <label>Recommended presets</label>
+          <select id="preset">
+            <option value="">Custom</option>
+            <option value="1024x1024">1024 × 1024</option>
+            <option value="800x800">800 × 800</option>
+            <option value="1920x1080">1920 × 1080</option>
+            <option value="50%">50% of original</option>
+            <option value="25%">25% of original</option>
+          </select>
+          <div class="small">Presets override custom width/height. Percentage presets use the original size.</div>
+        </div>
+
+        <div class="group">
+          <label>Custom resize (px)</label>
+          <div class="row">
+            <input id="width" type="number" min="1" placeholder="Width (px)" />
+            <input id="height" type="number" min="1" placeholder="Height (px)" />
+          </div>
+          <div class="small">Tip: Fill only one dimension to scale proportionally.</div>
+        </div>
+
+        <div class="group">
+          <label>Aspect ratio protection</label>
+          <div class="toggle">
+            <input id="keepRatio" type="checkbox" checked />
+            <div>
+              <div style="font-weight:750; color:#1b2c21">Fit inside dimensions (no stretch)</div>
+              <div class="small">Keeps original ratio, avoids distortion, no unwanted cropping.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="group">
+          <label>Compression quality</label>
+          <div class="slider">
+            <input id="quality" type="range" min="10" max="100" value="85" />
+            <div style="min-width:44px; text-align:right"><b id="qVal">85</b>%</div>
+          </div>
+          <div class="small">JPEG/WEBP are lossy. PNG is lossless (quality controls compression level).</div>
+        </div>
+
+        <div class="group">
+          <label>Output format</label>
+          <select id="outFormat">
+            <option value="jpeg">JPG</option>
+            <option value="png">PNG</option>
+            <option value="webp">WEBP</option>
+          </select>
+        </div>
+
+        <div class="btns">
+          <button id="btnProcessAll" type="button">Process All</button>
+          <button class="secondary" id="btnZip" type="button">Download All (ZIP)</button>
+        </div>
+
+        <div class="hint">
+          <b style="color:#1b2c21">Supported inputs:</b> JPG/JPEG, PNG, WEBP, BMP, TIFF, GIF (static frame).<br/>
+          <b style="color:#1b2c21">Bulk:</b> Upload multiple images, then process or download ZIP. Individual downloads are also available.
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="hd">
+        <h2>Upload</h2>
+        <div class="tag" id="countTag">0 files</div>
+      </div>
+      <div class="bd">
+        <div class="drop" id="drop">
+          <div class="left">
+            <b>Drag & drop images here</b>
+            <span>or click to choose files</span>
+          </div>
+          <button class="secondary" id="btnBrowse" type="button">Select files</button>
+          <input id="fileInput" type="file" accept="image/*" multiple />
+        </div>
+
+        <div style="height:14px"></div>
+        <div class="filelist" id="list"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <footer>
+     
+    <div class="powered">Powered by Faizan Ahmad</div>
+  </footer>
+
+  <script>
+    const API_BASE = "";
+    const state = { files: [] };
+    const el = (id) => document.getElementById(id);
+
+    function formatBytes(bytes){
+      if (!Number.isFinite(bytes)) return "-";
+      const units = ["B","KB","MB","GB"];
+      let i = 0, n = bytes;
+      while(n >= 1024 && i < units.length - 1){ n /= 1024; i++; }
+      return `${n.toFixed(i === 0 ? 0 : 2)} ${units[i]}`;
+    }
+
+    function toast(msg, sub){
+      const t = el("toast");
+      t.innerHTML = `<div style="font-weight:800">${msg}</div>` + (sub ? `<small>${sub}</small>` : "");
+      t.classList.add("show");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(()=>t.classList.remove("show"), 3200);
+    }
+
+    function updateCount(){
+      el("countTag").textContent = `${state.files.length} file${state.files.length===1?"":"s"}`;
+    }
+
+    function readSettingsForFile(file){
+      const preset = el("preset").value;
+      let width = el("width").value ? parseInt(el("width").value, 10) : null;
+      let height = el("height").value ? parseInt(el("height").value, 10) : null;
+
+      // If fixed preset, use it for single-file processing too
+      if (preset){
+        if (preset.includes("x")){
+          const [w,h] = preset.split("x").map(x=>parseInt(x,10));
+          width = w; height = h;
+        } else if (preset.endsWith("%")){
+          const pct = parseInt(preset.replace("%",""),10) / 100;
+          width = Math.max(1, Math.round(file._origW * pct));
+          height = Math.max(1, Math.round(file._origH * pct));
+        }
+      }
+
+      return {
+        preset,
+        width, height,
+        keep_ratio: el("keepRatio").checked,
+        quality: parseInt(el("quality").value, 10),
+        out_format: el("outFormat").value
+      };
+    }
+
+    async function checkHealth(){
+      try{
+        const r = await fetch(`${API_BASE}/api/health`);
+        const j = await r.json();
+        el("health").textContent = j.ok ? "online" : "offline";
+      }catch(e){
+        el("health").textContent = "offline";
+      }
+    }
+
+    function downloadBlob(blob, filename){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 5000);
+    }
+
+    async function processOne(fileObj, ui){
+      const { statusEl, pSizeEl, pSaveEl, btnDownload } = ui;
+      statusEl.textContent = "processing…";
+      btnDownload.disabled = true;
+
+      const s = readSettingsForFile(fileObj);
+      const form = new FormData();
+      form.append("file", fileObj._file, fileObj.name);
+      if (s.width) form.append("width", String(s.width));
+      if (s.height) form.append("height", String(s.height));
+      form.append("keep_ratio", String(s.keep_ratio));
+      form.append("quality", String(s.quality));
+      form.append("out_format", String(s.out_format));
+
+      try{
+        const r = await fetch(`${API_BASE}/api/process`, { method:"POST", body: form });
+        if (!r.ok){
+          const t = await r.text();
+          throw new Error(t || "Failed");
+        }
+        const blob = await r.blob();
+        const outName = fileObj.name.replace(/\.[^.]+$/, "") + (s.out_format === "jpeg" ? ".jpg" : "." + s.out_format);
+
+        fileObj._processedBlob = blob;
+        fileObj._processedName = outName;
+
+        const procBytes = blob.size;
+        pSizeEl.textContent = formatBytes(procBytes);
+
+        const saved = fileObj.size > 0 ? Math.max(0, 100 - (procBytes / fileObj.size) * 100) : 0;
+        pSaveEl.textContent = `${saved.toFixed(1)}%`;
+
+        statusEl.textContent = "done";
+        btnDownload.disabled = false;
+        toast("Processed", `${outName} • ${formatBytes(procBytes)}`);
+      }catch(e){
+        statusEl.textContent = "error";
+        toast("Processing failed", (e && e.message) ? e.message : "Unknown error");
+      }
+    }
+
+    function makeItem(fileObj){
+      const item = document.createElement("div");
+      item.className = "item";
+
+      const thumb = document.createElement("div");
+      thumb.className = "thumb";
+      const img = document.createElement("img");
+      img.src = fileObj._url;
+      img.alt = fileObj.name;
+      thumb.appendChild(img);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+
+      const top = document.createElement("div");
+      top.className = "top";
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = fileObj.name;
+      const status = document.createElement("div");
+      status.className = "tag";
+      status.textContent = "ready";
+      top.appendChild(name);
+      top.appendChild(status);
+
+      const stats = document.createElement("div");
+      stats.className = "stats";
+      stats.innerHTML = `
+        <span>Original: <b>${formatBytes(fileObj.size)}</b></span>
+        <span>Processed: <b class="pSize">-</b></span>
+        <span>Saved: <b class="pSave">-</b></span>
+      `;
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const btnProcess = document.createElement("button");
+      btnProcess.className = "secondary";
+      btnProcess.type = "button";
+      btnProcess.textContent = "Process";
+
+      const btnDownload = document.createElement("button");
+      btnDownload.type = "button";
+      btnDownload.textContent = "Download";
+      btnDownload.disabled = true;
+
+      const btnRemove = document.createElement("button");
+      btnRemove.className = "danger";
+      btnRemove.type = "button";
+      btnRemove.textContent = "Remove";
+
+      actions.appendChild(btnProcess);
+      actions.appendChild(btnDownload);
+      actions.appendChild(btnRemove);
+
+      meta.appendChild(top);
+      meta.appendChild(stats);
+      meta.appendChild(actions);
+
+      item.appendChild(thumb);
+      item.appendChild(meta);
+
+      const pSizeEl = stats.querySelector(".pSize");
+      const pSaveEl = stats.querySelector(".pSave");
+
+      btnRemove.addEventListener("click", ()=>{
+        URL.revokeObjectURL(fileObj._url);
+        state.files = state.files.filter(f => f !== fileObj);
+        item.remove();
+        updateCount();
+      });
+
+      btnProcess.addEventListener("click", async ()=>{
+        await processOne(fileObj, { statusEl: status, pSizeEl, pSaveEl, btnDownload });
+      });
+
+      btnDownload.addEventListener("click", ()=>{
+        if (!fileObj._processedBlob) return;
+        downloadBlob(fileObj._processedBlob, fileObj._processedName);
+      });
+
+      return item;
+    }
+
+    async function processAll(){
+      if (!state.files.length) return toast("No files", "Upload images first.");
+      for (const f of state.files){
+        const item = f._item;
+        const statusEl = item.querySelector(".tag");
+        const pSizeEl = item.querySelector(".pSize");
+        const pSaveEl = item.querySelector(".pSave");
+        const btnDownload = item.querySelectorAll("button")[1];
+        await processOne(f, { statusEl, pSizeEl, pSaveEl, btnDownload });
+      }
+    }
+
+    async function downloadZip(){
+      if (!state.files.length) return toast("No files", "Upload images first.");
+
+      const anyFile = state.files[0];
+      const s = readSettingsForFile(anyFile);
+
+      const form = new FormData();
+      for (const f of state.files){ form.append("files", f._file, f.name); }
+
+      // Send preset to backend so ZIP supports per-file 50%/25%
+      if (s.preset) form.append("preset", String(s.preset));
+
+      // Also send width/height for custom (when preset is empty)
+      if (!s.preset){
+        if (s.width) form.append("width", String(s.width));
+        if (s.height) form.append("height", String(s.height));
+      }
+
+      form.append("keep_ratio", String(s.keep_ratio));
+      form.append("quality", String(s.quality));
+      form.append("out_format", String(s.out_format));
+
+      try{
+        const r = await fetch(`${API_BASE}/api/process-zip`, { method:"POST", body: form });
+        if (!r.ok){
+          const t = await r.text();
+          throw new Error(t || "Failed");
+        }
+        const blob = await r.blob();
+        downloadBlob(blob, "processed_images.zip");
+        toast("ZIP ready", `Downloaded • ${formatBytes(blob.size)}`);
+      }catch(e){
+        toast("ZIP failed", (e && e.message) ? e.message : "Unknown error");
+      }
+    }
+
+    function addFiles(files){
+      const list = el("list");
+      for (const f of files){
+        const url = URL.createObjectURL(f);
+        const fileObj = { _file:f, name:f.name, size:f.size, _url:url, _processedBlob:null, _processedName:null, _origW:0, _origH:0 };
+
+        const img = new Image();
+        img.onload = ()=>{
+          fileObj._origW = img.naturalWidth || 0;
+          fileObj._origH = img.naturalHeight || 0;
+        };
+        img.src = url;
+
+        const item = makeItem(fileObj);
+        fileObj._item = item;
+
+        state.files.push(fileObj);
+        list.appendChild(item);
+      }
+      updateCount();
+      toast("Added", `${files.length} file${files.length===1?"":"s"} uploaded.`);
+    }
+
+    function clearAll(){
+      for (const f of state.files){
+        try{ URL.revokeObjectURL(f._url); }catch(e){}
+      }
+      state.files = [];
+      el("list").innerHTML = "";
+      updateCount();
+      toast("Cleared", "All files removed.");
+    }
+
+    el("quality").addEventListener("input", ()=> el("qVal").textContent = el("quality").value);
+    el("btnProcessAll").addEventListener("click", processAll);
+    el("btnZip").addEventListener("click", downloadZip);
+    el("btnClear").addEventListener("click", clearAll);
+
+    const drop = el("drop");
+    const fileInput = el("fileInput");
+    el("btnBrowse").addEventListener("click", ()=> fileInput.click());
+    drop.addEventListener("click", (e)=>{ if (e.target && e.target.id === "btnBrowse") return; fileInput.click(); });
+
+    fileInput.addEventListener("change", ()=>{
+      if (fileInput.files && fileInput.files.length){
+        addFiles(Array.from(fileInput.files));
+        fileInput.value = "";
+      }
+    });
+
+    ["dragenter","dragover"].forEach(ev=>{
+      drop.addEventListener(ev, (e)=>{ e.preventDefault(); e.stopPropagation(); drop.classList.add("drag"); });
+    });
+    ["dragleave","drop"].forEach(ev=>{
+      drop.addEventListener(ev, (e)=>{ e.preventDefault(); e.stopPropagation(); drop.classList.remove("drag"); });
+    });
+    drop.addEventListener("drop", (e)=>{
+      const files = e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
+      if (files.length) addFiles(files);
+    });
+
+    checkHealth();
+  </script>
+</body>
+</html>
