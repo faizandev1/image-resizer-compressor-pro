@@ -39,12 +39,7 @@ Frontend:
 - Bulk social media image resizing
 - Developer image processing workflows
 
-## 🏷 Keywords
-
-image resizer, image compressor, bulk image tool, fastapi image processing, pillow resize, web image optimizer
-
-White + Parrot Green professional UI, bulk resize/compress/convert, and ZIP download (including % presets).
-
+ 
 ## Run
 ```bash
 cd backend
