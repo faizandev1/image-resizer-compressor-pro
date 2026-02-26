@@ -2,8 +2,7 @@ name: FastAPI CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -20,9 +19,11 @@ jobs:
 
       - name: Install dependencies
         run: |
+          cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Test app
+      - name: Test FastAPI app
         run: |
-          python -c "import main; print('App loaded successfully')"
+          cd backend
+          python -c "import main; print('FastAPI app loaded successfully')"
